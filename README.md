@@ -11,5 +11,5 @@
  - The means of Communication between phone and drone at a range of 1m or 2m needs to have a high Data Tranfer Rate.
  
 # Todo List
-[ ] Get the exact components list and then measure their weight and their dimensions.
-[ ] Find the CAD designs of them and utilize them to form a prototype sketch.
+- [ ] Get the exact components list and then measure their weight and their dimensions.
+- [ ] Find the CAD designs of them and utilize them to form a prototype sketch.
