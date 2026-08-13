@@ -1,485 +1,514 @@
-# Man-Following Autonomous Drone
+# Product Requirements Document (PRD)
 
-> An autonomous aerial robot capable of locating, navigating to, and following a designated user while avoiding dynamic obstacles using onboard intelligence.
+# Project Name
 
----
+**Pocket Follow Drone (V1)**
 
-## Overview
-
-This project aims to build a lightweight autonomous quadcopter that can travel to a user's location from a distant starting point and continuously follow them at a configurable distance.
-
-Unlike conventional "Follow Me" drones that require the user to remain within communication range, this system is designed around a two-stage communication architecture:
-
-1. **Long-range communication** using LoRa through a wearable beacon.
-2. **High-bandwidth communication** using Wi-Fi once the drone reaches the user.
-
-The drone is intended to function as a research platform emphasizing modularity, autonomy, and future extensibility.
+Version: **1.0**
+Status: **Planning**
+Author: *S K Parthiv Pedapati*
 
 ---
 
-# Goals
+# 1. Overview
 
-The primary goals of the project are:
+Pocket Follow Drone is a low-cost autonomous aerial camera platform designed to maintain a configurable position relative to a user's phone or wearable device.
 
-- Autonomous navigation to the user.
-- Follow the user while maintaining a safe distance.
-- Dynamic obstacle avoidance.
-- Lightweight and efficient design.
-- Modular hardware architecture.
-- ROS2-compatible software stack.
-- Expandable for future research.
+Unlike existing follow-me drones that rely on expensive GPS systems, dedicated flight controllers, and onboard AI, this project focuses on achieving reliable autonomous following using minimal hardware and custom software.
 
----
+The project prioritizes:
 
-# Project Requirements
+- Low Cost
+- Lightweight Design
+- Open Hardware
+- Open Software
+- Simplicity
+- Expandability
 
-## Functional Requirements
-
-- Follow the designated user at approximately **1–2 meters**.
-- Receive a remote deployment command.
-- Navigate autonomously from its current location to the user's location.
-- Avoid both static and dynamic obstacles.
-- Continue tracking while the user moves.
-- Recover from temporary loss of visual tracking.
-- Return to home or land safely when required.
+The long-term vision is to evolve this platform into a complete autonomous robotics platform while keeping Version 1 focused and achievable.
 
 ---
 
-## Communication Requirements
+# 2. Problem Statement
 
-### Long Range
+Current autonomous drones are expensive because they require:
 
-Used only for mission deployment and telemetry.
+- Pixhawk flight controllers
+- GNSS modules
+- Multiple sensors
+- Companion computers
+- High-end processors
+- Proprietary software
 
-Requirements:
+For a simple "follow me while recording" use case, much of this hardware is unnecessary.
 
-- Extremely long range
-- Low power
-- Small packet size
-- Reliable
-
-Chosen Technology:
-
-- **LoRa**
+The objective of this project is to investigate how much of this complexity can be removed while still maintaining stable autonomous flight.
 
 ---
 
-### Short Range
+# 3. Goals
 
-Activated once the drone reaches the user.
+## Primary Goals
 
-Requirements:
-
-- High bandwidth
-- Low latency
-- Video streaming
-- Debugging
-- Configuration
-
-Chosen Technology:
-
-- **Wi-Fi**
+- Build a low-cost autonomous drone
+- Follow a user
+- Record video
+- Maintain configurable distance
+- Maintain configurable height
+- Hover stably
+- Use inexpensive components
+- Design custom electronics
+- Design custom frame
 
 ---
 
-# System Architecture
+## Secondary Goals
+
+- Modular architecture
+- Custom PCB
+- Mobile application
+- OTA firmware updates
+- Expandable sensor support
+
+---
+
+# 5. Target Users
+
+- Content creators
+- Students
+- Robotics enthusiasts
+- Researchers
+- Hobbyists
+- Open-source developers
+
+---
+
+# 6. Use Cases
+
+## Primary
+
+The user launches the drone.
+
+The drone stabilizes.
+
+The user starts Follow Mode.
+
+The drone maintains
+
+- distance
+- height
+- heading
+
+while recording video.
+
+---
+
+## Secondary
+
+Manual control
+
+Emergency landing
+
+Hover mode
+
+Video recording
+
+Parameter tuning
+
+---
+
+# 7. Functional Requirements
+
+## Flight
+
+The drone shall
+
+- Hover
+- Takeoff
+- Land
+- Maintain pose
+- Maintain altitude
+- Accept velocity commands
+
+---
+
+## Following
+
+The drone shall
+
+- Follow the user
+- Maintain configurable distance
+- Maintain configurable height
+- Smoothly accelerate
+- Smoothly decelerate
+
+---
+
+## Camera
+
+The drone shall
+
+- Record video
+- Start recording
+- Stop recording
+
+---
+
+## Communication
+
+Phone ↔ Drone
+
+- Wi-Fi
+- BLE (optional)
+
+---
+
+## Configuration
+
+The user shall be able to configure
+
+- Height
+- Distance
+- Speed
+- Maximum velocity
+- Camera settings
+- PID tuning
+
+---
+
+# 8. Performance Requirements
+
+| Parameter | Target |
+|------------|--------|
+| Flight Time | 20–30 min |
+| Weight | < 800 g |
+| Ideal Weight | 500–700 g |
+| Speed | Walking/Jogging |
+| Startup Time | <10 sec |
+| Video | >240p |
+| Hover Accuracy | ±20 cm (target) |
+| Communication | Wi-Fi |
+
+---
+
+# 9. System Architecture
 
 ```
-                  Phone
-          UI • Maps • Logging
-                   │
-           Bluetooth / USB
-                   │
-      ┌────────────────────────┐
-      │ Wearable Navigation    │
-      │ Beacon                 │
-      │                        │
-      │ • ESP32                │
-      │ • LoRa                 │
-      │ • GNSS                 │
-      │ • Battery              │
-      └────────────────────────┘
-                   │
-              Long-range LoRa
-                   │
-           ┌──────────────────┐
-           │      Drone       │
-           │                  │
-           │ Flight Controller│
-           │ Companion SBC    │
-           │ Camera           │
-           │ Obstacle Sensors │
-           │ Wi-Fi            │
-           └──────────────────┘
+Phone
+│
+├── UI
+├── High Level Control
+├── Relative Position Controller
+└── Video Preview
+        │
+        │ Wi-Fi
+        ▼
+ESP32
+│
+├── IMU
+├── Sensor Fusion
+├── PID
+├── Flight Controller
+├── Battery Monitoring
+└── ESC Output
+        │
+        ▼
+ESC
+│
+Brushless Motors
 ```
 
 ---
 
-# High-Level Workflow
+# 10. Hardware Requirements
 
-```
-User presses Deploy
+## Flight Controller
 
-↓
-
-Wearable Beacon sends:
-
-• Latitude
-• Longitude
-• Heading
-• Speed
-• Timestamp
-
-↓
-
-Drone receives coordinates
-
-↓
-
-Autonomous Navigation
-
-↓
-
-Obstacle Avoidance
-
-↓
-
-Drone reaches user
-
-↓
-
-Switch to Wi-Fi
-
-↓
-
-Vision-based following
-
-↓
-
-Mission complete
-```
+Custom ESP32 Flight Controller
 
 ---
 
-# Development Phases
+## Processor
+
+ESP32-S3
 
 ---
 
-## Phase 0 — Research
+## Sensors
 
-Objectives
+- IMU
+- Barometer
 
-- Define requirements
-- Explore architectures
-- Study existing solutions
-- Select hardware
-- Estimate weight
-- Estimate flight time
+Future
 
-Deliverables
-
-- Final architecture
-- Component list
-- Weight estimation
-- Power estimation
+- Optical Flow
+- ToF
 
 ---
 
-## Phase 1 — Hardware Design
+## Camera
 
-Objectives
-
-- Select components
-- Build CAD model
-- Determine center of gravity
-- Battery placement
-- Wiring plan
-
-Deliverables
-
-- Complete CAD assembly
-- BOM
-- Mechanical layout
+1080p Camera
 
 ---
 
-## Phase 2 — Basic Flight
+## ESC
 
-Objectives
-
-- Assemble drone
-- Configure PX4 / ArduPilot
-- Stable hover
-- Manual flight
-- Battery testing
-
-Deliverables
-
-- Stable autonomous platform
+4-in-1 Brushless ESC
 
 ---
 
-## Phase 3 — Wearable Beacon
+## Motors
 
-Objectives
+Brushless Outrunner Motors
 
-Develop the wearable device.
+---
 
-Features
+## Battery
 
+LiPo / Li-ion
+
+---
+
+# 11. Software Architecture
+
+## ESP32
+
+Responsibilities
+
+- Flight stabilization
+- Sensor fusion
+- PID
+- ESC control
+- Communication
+
+---
+
+## Mobile App
+
+Responsibilities
+
+- Control
+- UI
+- Telemetry
+- Parameter tuning
+- Recording
+- High-level movement
+
+---
+
+# 12. Engineering Goals
+
+## Cost
+
+Keep total BOM below ₹10k.
+
+---
+
+## Weight
+
+Target
+
+500–700 g
+
+Maximum
+
+800 g
+
+---
+
+## Endurance
+
+20–30 minutes
+
+---
+
+## Manufacturability
+
+- 3D printable
+- Easy assembly
+- Replaceable parts
+
+---
+
+# 13. Constraints
+
+- Low budget
+- Open source
+- Minimal custom hardware initially
+- Consumer components
+- Easy to reproduce
+
+---
+
+# 14. Risks
+
+## Flight Stability
+
+Building a custom flight controller is significantly harder than using Pixhawk.
+
+---
+
+## Communication Latency
+
+Phone control latency must remain low enough for smooth flight.
+
+---
+
+## Sensor Drift
+
+IMU drift may reduce long-term positional accuracy.
+
+---
+
+## Battery Life
+
+Small batteries reduce endurance.
+
+---
+
+# 15. Success Criteria
+
+The project is considered successful when
+
+- The drone can hover reliably.
+- The drone can follow the user.
+- The drone maintains configurable distance.
+- The drone records stable video.
+- Total BOM remains below ₹10,000.
+- Flight time exceeds 20 minutes.
+
+---
+
+# 16. Future Roadmap
+
+## V2
+
+- Optical Flow
+- ToF
+- Better Camera
+- Improved Stabilization
+
+---
+
+## V3
+
+- Obstacle Avoidance
+- AI Tracking
+- Auto Orbit
+- Gesture Control
+
+---
+
+## V4
+
+- GPS
 - LoRa
-- GNSS
-- Bluetooth
-- Battery
-- USB Charging
-
-Deliverables
-
-- Working beacon
-- Position broadcasting
+- Autonomous Deployment
+- Waypoint Navigation
+- Return to User
 
 ---
 
-## Phase 4 — Long-Range Navigation
+# 17. Bill of Materials (Draft)
 
-Objectives
-
-- Receive beacon coordinates
-- Fly autonomously
-- Waypoint navigation
-
-Deliverables
-
-Drone capable of locating the user.
-
----
-
-## Phase 5 — Vision
-
-Objectives
-
-- Person detection
-- Person tracking
-- Distance estimation
-
-Deliverables
-
-Reliable visual tracking.
+| Component | Status |
+|------------|--------|
+| ESP32-S3 | TBD |
+| IMU | TBD |
+| ESC | TBD |
+| Motors | TBD |
+| Battery | TBD |
+| Camera | TBD |
+| Frame | TBD |
+| Propellers | TBD |
+| Connectors | TBD |
 
 ---
 
-## Phase 6 — Obstacle Avoidance
+# 18. Project Milestones
 
-Objectives
+## Milestone 1
 
-- Detect obstacles
-- Dynamic path planning
-- Safe rerouting
-- Collision avoidance
-
-Deliverables
-
-Reliable autonomous navigation.
+- Finalize architecture
 
 ---
 
-## Phase 7 — Follow Mode
+## Milestone 2
 
-Objectives
-
-- Maintain 1–2 meter distance
-- Smooth motion
-- Stable camera tracking
-
-Deliverables
-
-Complete follow-me functionality.
+- Select all components
 
 ---
 
-## Phase 8 — Optimization
+## Milestone 3
 
-Objectives
-
-- Reduce weight
-- Increase endurance
-- Improve algorithms
-- Tune PID
-- Improve power efficiency
+- Engineering calculations
+- Weight budget
+- Power budget
+- Cost budget
 
 ---
 
-# Current Hardware Direction
+## Milestone 4
 
-Current design philosophy:
-
-- Lightweight
-- Endurance focused
-- Modular
-- Upgradeable
-
-Target specifications
-
-| Item | Goal |
-|------|------|
-| Size | ~300 mm frame |
-| Weight | As light as possible |
-| Flight Time | 40–50 minutes |
-| Payload | Computer vision capable |
-| Communication | LoRa + Wi-Fi |
+- CAD Design
+- Frame Design
 
 ---
 
-# Planned Software Stack
+## Milestone 5
 
-- Linux
-- ROS2
-- PX4
-- MAVLink
-- OpenCV
-- Python
-- C++
-- Git
-- Docker (optional)
+- Hardware Assembly
 
 ---
 
-# Future Improvements
+## Milestone 6
 
-- RTK GPS
-- Stereo Vision
-- SLAM
-- Visual-Inertial Odometry
-- Multi-target tracking
-- Swarm capability
-- Autonomous charging
-- Battery swapping
-- AI-based path planning
-- Reinforcement learning
+- Flight Controller Firmware
 
 ---
 
-# TODO
+## Milestone 7
 
-## Research
-
-- [ ] Finalize architecture
-- [ ] Compare flight controllers
-- [ ] Compare companion computers
-- [ ] Compare GNSS modules
-- [ ] Compare batteries
-- [ ] Compare communication systems
-- [ ] Determine regulatory constraints
+- Mobile App
 
 ---
 
-## Hardware
+## Milestone 8
 
-- [ ] Finalize frame
-- [ ] Select motors
-- [ ] Select ESC
-- [ ] Select propellers
-- [ ] Select battery
-- [ ] Select GNSS
-- [ ] Select camera
-- [ ] Select obstacle sensors
-- [ ] Select LoRa modules
-- [ ] Design wearable beacon
+- Flight Testing
 
 ---
 
-## CAD
+## Milestone 9
 
-- [ ] Collect CAD models
-- [ ] Assemble prototype
-- [ ] Verify clearances
-- [ ] Estimate center of gravity
-- [ ] Design mounting hardware
+- Follow Mode
 
 ---
 
-## Software
+## Milestone 10
 
-### Flight
-
-- [ ] Configure PX4
-- [ ] Configure MAVLink
-- [ ] Configure failsafes
-
-### Navigation
-
-- [ ] GPS navigation
-- [ ] Waypoint following
-- [ ] Mission planner
-
-### Vision
-
-- [ ] Camera interface
-- [ ] Person detection
-- [ ] Person tracking
-
-### AI
-
-- [ ] Path planning
-- [ ] Obstacle avoidance
-- [ ] Local planner
-- [ ] Global planner
-
-### Communication
-
-- [ ] LoRa protocol
-- [ ] Wi-Fi communication
-- [ ] Phone application
-- [ ] Telemetry
+- Documentation
 
 ---
 
-## Testing
+# 19. Design Principles
 
-- [ ] Hover test
-- [ ] Manual flight
-- [ ] GPS accuracy
-- [ ] LoRa range
-- [ ] Wi-Fi bandwidth
-- [ ] Obstacle avoidance
-- [ ] Tracking accuracy
-- [ ] Battery endurance
-- [ ] Emergency stop
-- [ ] Return to home
+1. Keep hardware simple.
+2. Minimize component count.
+3. Prefer software optimization over hardware complexity.
+4. Optimize for cost before performance.
+5. Design for repairability.
+6. Keep the platform modular.
+7. Every added component must justify its cost, weight, and power consumption.
 
 ---
 
-# Long-Term Vision
+# 20. Open Questions
 
-This project is intended to evolve beyond a simple follow-me drone into a modular autonomous aerial robotics platform.
-
-Potential research directions include:
-
-- Human-following robots
-- Autonomous aerial navigation
-- Dynamic obstacle avoidance
-- Multi-agent systems
-- Embedded AI
-- Autonomous inspection
-- Search and rescue
-- Morphological robotics integration
-- Human-drone interaction
-
----
-
-# License
-
-License to be decided.
-
----
-
-# Status
-
-🟡 **Planning & Architecture**
-
-Current focus:
-
-- System architecture
-- Component selection
-- Weight estimation
-- CAD planning
+- Which communication protocol provides the best balance between latency and reliability (Wi-Fi vs BLE)?
+- Can an ESP32-based flight controller provide sufficiently stable autonomous flight?
+- What is the minimum sensor suite required for reliable following?
+- Can the target BOM remain under ₹20,000 while meeting endurance and stability goals?
+- Which propulsion system offers the best efficiency for a 500–700 g airframe?
+- Should the drone rely solely on the phone for high-level guidance, or should additional onboard sensing be introduced in later versions?
