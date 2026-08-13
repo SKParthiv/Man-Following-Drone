@@ -2,7 +2,7 @@
 
 # Project Name
 
-**Pocket Follow Drone (V1)**
+**Follow Drone (V1)**
 
 Version: **1.0**
 Status: **Planning**
@@ -430,47 +430,47 @@ The project is considered successful when
 
 ## Milestone 1
 
-- Finalize architecture
+- [ ] Finalize architecture
 
 ---
 
 ## Milestone 2
 
-- Select all components
+- [ ] Select all components
 
 ---
 
 ## Milestone 3
 
-- Engineering calculations
-- Weight budget
-- Power budget
-- Cost budget
+- [ ] Engineering calculations
+- [ ] Weight budget
+- [ ] Power budget
+- [ ] Cost budget
 
 ---
 
 ## Milestone 4
 
-- CAD Design
-- Frame Design
+- [ ] CAD Design
+- [ ] Frame Design
 
 ---
 
 ## Milestone 5
 
-- Hardware Assembly
+- [ ] Hardware Assembly
 
 ---
 
 ## Milestone 6
 
-- Flight Controller Firmware
+- [ ] Flight Controller Firmware
 
 ---
 
 ## Milestone 7
 
-- Mobile App
+- [ ] Mobile App
 
 ---
 
@@ -509,6 +509,6 @@ The project is considered successful when
 - Which communication protocol provides the best balance between latency and reliability (Wi-Fi vs BLE)?
 - Can an ESP32-based flight controller provide sufficiently stable autonomous flight?
 - What is the minimum sensor suite required for reliable following?
-- Can the target BOM remain under ₹20,000 while meeting endurance and stability goals?
+- Can the target BOM remain under ₹10,000 while meeting endurance and stability goals?
 - Which propulsion system offers the best efficiency for a 500–700 g airframe?
 - Should the drone rely solely on the phone for high-level guidance, or should additional onboard sensing be introduced in later versions?
