@@ -126,7 +126,7 @@ The drone shall
 - Hover
 - Takeoff
 - Land
-- Maintain pose
+- Change to desired Yaw
 - Maintain altitude
 - Accept velocity commands
 
@@ -476,19 +476,19 @@ The project is considered successful when
 
 ## Milestone 8
 
-- Flight Testing
+- [ ] Flight Testing
 
 ---
 
 ## Milestone 9
 
-- Follow Mode
+- [ ] Follow Mode
 
 ---
 
 ## Milestone 10
 
-- Documentation
+- [ ] Documentation
 
 ---
 
