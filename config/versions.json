@@ -1,0 +1,16 @@
+{
+    "ubuntu": {
+        "version": "24.04",
+        "codename": "noble",
+        "architecture": "amd64"
+    },
+    "ros": {
+        "distro": "jazzy"
+    },
+    "gazebo": {
+        "distro": "harmonic"
+    },
+    "python": {
+        "major_minor": "3.12"
+    }
+}
