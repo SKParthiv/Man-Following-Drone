@@ -1,0 +1,18 @@
+# ROS 2 / colcon
+build/
+install/
+log/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Environment / secrets
+.env
+
+# Zed
+.zed/
+
+# OS
+.DS_Store
