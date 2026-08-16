@@ -1,651 +1,756 @@
 # V1 Component Selection Plan
 
-> **Document Version:** 1.0  
-> **Project:** Pocket Follow Drone (V1)  
-> **Status:** Draft - Component Evaluation
+> **Document Version:** 1.0
+> **Project:** Pocket Follow Drone (V1)
+> **Status:** Draft — Component Evaluation
 
 ---
 
 # Objective
 
-This document contains the candidate hardware components for Version 1 of the Pocket Follow Drone.
+Select the lowest-cost, lightweight, and reliable hardware required for V1.
 
-The primary objective of V1 is to build the **lowest-cost**, **lightweight**, and **reliable** autonomous follow drone while minimizing hardware complexity.
+V1 uses:
 
-Unlike later versions, V1 intentionally avoids expensive navigation hardware such as GPS, Pixhawk, companion computers, LiDAR, and LoRa.
+* Phone for high-level computation
+* ESP32 for low-level flight control
+* IMU for attitude sensing
+* MicoAir MTF-01P for optical flow + ToF
+* Wi-Fi for communication
+* Brushless propulsion
 
----
+V1 does not use:
 
-# System Architecture
-
-```
-                Phone
-        (Control Application)
-               │
-           Wi-Fi / BLE
-               │
-        ┌─────────────┐
-        │  ESP32-S3   │
-        ├─────────────┤
-        │ Sensor Fusion
-        │ Flight Control
-        │ PID Controller
-        └──────┬──────┘
-               │
-          PWM / DShot
-               │
-          4-in-1 ESC
-               │
-        Brushless Motors
-```
+* Drone GNSS
+* Pixhawk
+* Companion computer
+* LiDAR
+* LoRa
+* Long-range communication
 
 ---
 
-# Component Categories
+# System
 
-## Sensors
-
-The drone requires sensors for stabilization and local position estimation.
-
----
-
-# 1. IMU (Inertial Measurement Unit)
-
-## Purpose
-
-- Roll estimation
-- Pitch estimation
-- Angular velocity
-- Linear acceleration
-- Flight stabilization
-
----
-
-### Option 1 — MPU6050
-
-**Advantages**
-
-- Extremely inexpensive
-- Huge community support
-- Easy to integrate
-
-**Disadvantages**
-
-- Older sensor
-- More noise
-- Lower accuracy
-
-Approx Price
-
-```
-₹200–300
+```text
+                    Phone
+             High-Level Control
+                     │
+                    Wi-Fi
+                     │
+                     ▼
+              ┌─────────────┐
+              │   ESP32-S3  │
+              │             │
+              │ Sensor      │
+              │ Aggregation │
+              │             │
+              │ State       │
+              │ Estimation  │
+              │             │
+              │ PID /       │
+              │ Stabilisation│
+              └──────┬──────┘
+                     │
+                 DShot / PWM
+                     │
+                     ▼
+                 4-in-1 ESC
+                     │
+                     ▼
+               Brushless Motors
 ```
 
 ---
 
-### Option 2 — BMI270
+# 1. Flight Controller
 
-**Advantages**
+## ESP32-S3
 
-- Better filtering
-- Lower noise
-- Low power consumption
+**Status:** Current choice
 
-**Disadvantages**
+### Responsibilities
 
-- Smaller community
-- Slightly higher price
+* Sensor aggregation
+* State estimation
+* Stabilisation
+* PID control
+* Altitude control
+* Movement execution
+* Wi-Fi communication
+* ESC control
+* Battery monitoring
+* Safety
 
-Approx Price
+### Advantages
 
-```
-₹450–600
-```
+* Low cost
+* Wi-Fi
+* Bluetooth available
+* Dual-core
+* Large ecosystem
+* Sufficient for V1 processing
 
----
+### Disadvantages
 
-### Option 3 — ICM-42688-P (Recommended)
+* Custom flight-control firmware required
+* Less flight-control ecosystem than dedicated STM32 flight controllers
 
-**Advantages**
+### Approximate Price
 
-- Very low noise
-- High sampling rate
-- Excellent stability
-- Used in modern drones
-
-**Disadvantages**
-
-- Highest cost of the three
-
-Approx Price
-
-```
-₹600–800
-```
-
----
-
-# 2. Optical Flow Sensor
-
-## Purpose
-
-Measures movement relative to the ground.
-
-Allows the drone to estimate horizontal motion without GPS.
-
----
-
-### Option 1 — PMW3901 (Recommended)
-
-**Advantages**
-
-- Proven in many drones
-- Excellent documentation
-- Lightweight
-- Low power
-
-**Disadvantages**
-
-- Requires textured surfaces
-
-Approx Price
-
-```
-₹1200–1800
-```
-
----
-
-### Option 2 — PAA5100JE
-
-**Advantages**
-
-- Newer sensor
-- Better low-light performance
-
-**Disadvantages**
-
-- Smaller software ecosystem
-
-Approx Price
-
-```
-₹1000–1500
-```
-
----
-
-# 3. Time-of-Flight (ToF)
-
-## Purpose
-
-Measures distance from the ground.
-
-Used for
-
-- Hovering
-- Landing
-- Altitude stabilization
-
----
-
-### Option 1 — VL53L1X (Recommended)
-
-Range
-
-```
-4 m
-```
-
-Advantages
-
-- Accurate
-- Inexpensive
-- Small
-
-Approx Price
-
-```
-₹600–800
-```
-
----
-
-### Option 2 — VL53L5CX
-
-Advantages
-
-- 8×8 depth map
-- Future obstacle avoidance
-
-Disadvantages
-
-- More expensive
-- Unnecessary for V1
-
-Approx Price
-
-```
-₹1700–2200
-```
-
----
-
-# 4. Barometer (Optional but Recommended)
-
-## Purpose
-
-Altitude estimation above ToF range.
-
-Candidate
-
-BMP388
-
-Approx Price
-
-```
-₹300–450
-```
-
----
-
-# Flight Controller
-
----
-
-## ESP32-S3 (Current Choice)
-
-Responsibilities
-
-- Flight Control
-- Sensor Fusion
-- PID Controller
-- Communication
-- Battery Monitoring
-- ESC Control
-
-Advantages
-
-- Extremely inexpensive
-- Wi-Fi
-- Bluetooth
-- Dual Core
-- Large community
-
-Disadvantages
-
-- Less processing power than STM32
-- Custom firmware required
-
-Approx Price
-
-```
+```text
 ₹500–700
 ```
 
 ---
 
-# ESC
+# 2. IMU
 
-The Electronic Speed Controller converts flight controller commands into motor power.
+The IMU provides the primary inertial information required for stabilization and state estimation.
+
+## Option 1 — MPU6050
+
+**Status:** Budget candidate
+
+### Advantages
+
+* Extremely inexpensive
+* Large community
+* Easy to find
+* Simple integration
+
+### Disadvantages
+
+* Older sensor
+* Higher noise
+* Lower performance
+
+### Approximate Price
+
+```text
+₹200–300
+```
 
 ---
+
+## Option 2 — BMI270
+
+**Status:** Candidate
+
+### Advantages
+
+* Lower noise
+* Good filtering
+* Low power
+* Modern sensor
+
+### Disadvantages
+
+* Smaller ecosystem
+* Slightly higher cost
+
+### Approximate Price
+
+```text
+₹450–600
+```
+
+---
+
+## Option 3 — ICM-42688-P
+
+**Status:** Preferred candidate
+
+### Advantages
+
+* Very low noise
+* High sampling rate
+* Good stability
+* Well suited to flight-control applications
+
+### Disadvantages
+
+* Higher cost
+
+### Approximate Price
+
+```text
+₹600–800
+```
+
+---
+
+# 3. Optical Flow + ToF
+
+## MicoAir MTF-01P
+
+**Status:** Selected V1 sensor
+
+The MTF-01P combines:
+
+* Optical flow
+* ToF distance measurement
+
+This replaces the need to separately select an optical-flow sensor and a ToF sensor for V1.
+
+### Purpose
+
+Optical flow:
+
+* Horizontal motion estimation
+* Local odometry
+
+ToF:
+
+* Ground distance
+* Altitude estimation
+* Hover control
+* Landing
+
+### Advantages
+
+* Combined module
+* Less wiring
+* Less integration work
+* Lightweight
+* Designed for flight applications
+* Directly matches the V1 architecture
+
+### Disadvantages
+
+* More expensive than individual basic sensors
+* Performance depends on surface, lighting, and altitude
+
+### Approximate Price
+
+```text
+TBD
+```
+
+---
+
+# 4. Barometer
+
+## BMP388
+
+**Status:** Optional
+
+A barometer may provide additional altitude information, particularly outside the useful ToF range.
+
+It is **not part of the minimum V1 sensor stack**.
+
+### Purpose
+
+* Pressure-based altitude estimation
+* Additional altitude reference
+* Sensor redundancy
+
+### Approximate Price
+
+```text
+₹300–450
+```
+
+### Decision
+
+Start without it.
+
+Add it only if simulation or flight testing shows that ToF alone is insufficient.
+
+---
+
+# 5. ESC
+
+The ESC converts flight-controller commands into motor power.
 
 ## Requirements
 
-- 4-in-1
-- Brushless
-- DShot Support
-- 20A–30A
+* 4-in-1
+* Brushless
+* 20–30 A target
+* DShot support preferred
+* Suitable for selected motors and battery
 
 ---
 
-### Option 1 — HAKRC 20A
+## Option 1 — HAKRC 20A
 
-Advantages
+**Status:** Budget candidate
 
-- Very inexpensive
-- Lightweight
+### Advantages
 
-Disadvantages
+* Low cost
+* Lightweight
 
-- Quality varies
+### Disadvantages
 
-Approx Price
+* Quality variation
+* Less confidence for long-term reliability
 
-```
+### Approximate Price
+
+```text
 ₹1500–1800
 ```
 
 ---
 
-### Option 2 — SpeedyBee 20A (Recommended)
+## Option 2 — SpeedyBee 20A
 
-Advantages
+**Status:** Preferred candidate
 
-- Reliable
-- Better documentation
-- Better build quality
+### Advantages
 
-Disadvantages
+* Better build quality
+* Better documentation
+* Established ecosystem
 
-- Slightly more expensive
+### Disadvantages
 
-Approx Price
+* Higher cost
 
-```
+### Approximate Price
+
+```text
 ₹1800–2200
 ```
 
 ---
 
-# Motors
+# 6. Motors
 
-The propulsion system will be selected based on final weight and desired flight time.
+Motor selection depends on:
 
----
+* Final weight
+* Propeller size
+* Battery voltage
+* Required thrust
+* Desired efficiency
 
-### Option 1 — 1404
-
-Suitable for
-
-- Small drones
-- Lightweight
-
-Advantages
-
-- Very light
-- Low power
-
-Disadvantages
-
-- Lower thrust
-
-Approx Price (Set of 4)
-
-```
-₹2400–2800
-```
+The target is a lightweight propulsion system suitable for a roughly 500–700 g drone.
 
 ---
 
-### Option 2 — 1505 (Current Direction)
+## Option 1 — 1404
 
-Advantages
+**Status:** Candidate
 
-- Good balance
-- Efficient
-- Higher thrust
+### Advantages
 
-Disadvantages
+* Lightweight
+* Low power
+* Suitable for small frames
 
-- Slightly heavier
+### Disadvantages
 
-Approx Price
+* Lower thrust margin
 
-```
-₹3000–3500
+### Approximate Price
+
+```text
+₹2400–2800 / 4
 ```
 
 ---
 
-### Option 3 — 1804
+## Option 2 — 1505
 
-Advantages
+**Status:** Current direction
 
-- High thrust
-- Future payload support
+### Advantages
 
-Disadvantages
+* Good thrust/weight balance
+* Suitable for lightweight drone
+* Better thrust margin than 1404
 
-- Heavier
-- Higher power consumption
+### Disadvantages
 
-Approx Price
+* Slightly heavier
 
-```
-₹3600–4200
+### Approximate Price
+
+```text
+₹3000–3500 / 4
 ```
 
 ---
 
-# Propellers
+## Option 3 — 1804
 
-Current Direction
+**Status:** Candidate
 
+### Advantages
+
+* High thrust
+* Greater payload margin
+
+### Disadvantages
+
+* Heavier
+* Higher power consumption
+
+### Approximate Price
+
+```text
+₹3600–4200 / 4
 ```
+
+---
+
+# 7. Propellers
+
+**Status:** TBD after motor selection
+
+Target:
+
+```text
 3–4 inch
 ```
 
-Options
+Candidate manufacturers:
 
-- Gemfan
-- HQProp
+* Gemfan
+* HQProp
 
-Approx Price
+Selection depends on:
 
-```
+* Motor KV
+* Battery voltage
+* Motor thrust curve
+* Current
+* Efficiency
+* Required thrust
+
+### Approximate Price
+
+```text
 ₹300–600
 ```
 
 ---
 
-# Battery
+# 8. Battery
 
-Battery selection depends on propulsion calculations.
+Battery selection must follow propulsion calculations.
 
 ---
 
-### Option 1
+## Option 1 — 2S 1500 mAh LiPo
 
-2S 1500 mAh LiPo
+**Status:** Candidate
 
-Advantages
+### Advantages
 
-- Lightweight
-- Cheap
+* Lightweight
+* Low cost
 
-Disadvantages
+### Disadvantages
 
-- Lower power
+* Lower power
+* Lower energy capacity
 
-Approx Price
+### Approximate Price
 
-```
+```text
 ₹1200
 ```
 
 ---
 
-### Option 2
+## Option 2 — 2S 2200 mAh LiPo
 
-2S 2200 mAh LiPo
+**Status:** Candidate
 
-Advantages
+### Advantages
 
-- Longer flight
+* Higher capacity
+* Longer potential flight time
 
-Disadvantages
+### Disadvantages
 
-- Heavier
+* Heavier
 
-Approx Price
+### Approximate Price
 
-```
+```text
 ₹1600
 ```
 
 ---
 
-### Option 3
+## Option 3 — 3S 1500 mAh LiPo
 
-3S 1500 mAh LiPo
+**Status:** Candidate
 
-Advantages
+### Advantages
 
-- More power
+* Higher voltage
+* Higher available power
+* Potentially better propulsion performance
 
-Disadvantages
+### Disadvantages
 
-- Higher current requirements
+* Higher current and motor requirements
+* Requires matching motor/propeller selection
 
-Approx Price
+### Approximate Price
 
-```
+```text
 ₹1800
 ```
 
 ---
 
-# Camera
+# 9. Camera
 
----
+The camera is independent of the flight-control sensor system.
 
-### Option 1
+## Option 1 — ESP32-CAM
 
-ESP32-CAM
+**Status:** Budget candidate
 
-Advantages
+### Advantages
 
-- Extremely cheap
-- Easy integration
+* Very cheap
+* Easy integration
+* Wi-Fi
 
-Disadvantages
+### Disadvantages
 
-- Limited quality
+* Limited image quality
+* Limited video capability
 
-Approx Price
+### Approximate Price
 
-```
+```text
 ₹500
 ```
 
 ---
 
-### Option 2
+## Option 2 — OV2640 Module
 
-OV2640 Camera Module
+**Status:** Candidate
 
-Advantages
+### Advantages
 
-- Better image quality
+* Low cost
+* Better integration flexibility
 
-Approx Price
+### Disadvantages
 
-```
+* Still limited compared with dedicated cameras
+
+### Approximate Price
+
+```text
 ₹800–1200
 ```
 
 ---
 
-# Wiring
+# 10. Frame
 
-Requirements
+**Status:** Custom design
 
-- XT30 Connector
-- Silicone Wire
-- JST Connectors
-- Heat Shrink
-- Power Switch
+The frame will be designed after propulsion and component selection.
 
-Approx Cost
+### Requirements
 
-```
-₹300–500
-```
+* Lightweight
+* Small
+* Rigid
+* Easy to assemble
+* Easy to repair
+* Correct motor geometry
+* Good component placement
+* Stable center of gravity
+* Adequate airflow
 
----
+### Materials
 
-# Fasteners
+Prototype:
 
-- M2 Screws
-- M3 Screws
-- Brass Inserts
-- Nylon Standoffs
-
-Approx Cost
-
-```
-₹300
+```text
+PLA
 ```
 
----
+Production candidate:
 
-# Chassis
-
-The frame will be custom designed after component selection.
-
-Material Candidates
-
-- PLA (Prototype)
-- PETG
-- Carbon Reinforced PETG (Future)
-
-Estimated Cost
-
+```text
+PETG
 ```
+
+Future:
+
+```text
+Carbon-fiber reinforced material
+```
+
+### Estimated Cost
+
+```text
 ₹500–800
 ```
 
 ---
 
-# Estimated Budget
+# 11. Wiring and Power
 
-| Component | Estimated Cost |
-|------------|---------------:|
-| ESP32-S3 | ₹600 |
-| IMU | ₹700 |
-| Optical Flow | ₹1500 |
-| ToF | ₹700 |
-| Barometer | ₹350 |
-| ESC | ₹2000 |
-| Motors | ₹3200 |
-| Propellers | ₹500 |
-| Battery | ₹1600 |
-| Camera | ₹800 |
-| Wiring | ₹500 |
-| Frame | ₹600 |
+Required:
 
-## Estimated BOM
+* XT30 connector
+* Silicone wire
+* JST connectors
+* Heat shrink
+* Power switch
+* Power distribution
 
-```
-₹13,000 ± ₹1,500
+### Estimated Cost
+
+```text
+₹300–500
 ```
 
 ---
 
-# Cost Optimization Opportunities
+# 12. Fasteners
 
-If the ₹10,000 target becomes mandatory, possible reductions include:
+Required:
 
-- Use MPU6050 instead of ICM-42688-P
-- Use HAKRC ESC instead of SpeedyBee
-- Use ESP32-CAM instead of a separate camera
-- Start without a barometer (if ToF covers the intended altitude range)
-- Reuse an existing LiPo charger
-- Purchase motors and ESCs from budget suppliers
+* M2 screws
+* M3 screws
+* Nylon standoffs
+* Brass inserts where required
 
-These changes can reduce the BOM by approximately ₹2,000–₹3,000, but may affect performance or development effort.
+### Estimated Cost
+
+```text
+₹300
+```
 
 ---
 
-# Next Step
+# 13. Component Status
 
-Once the following components are finalized:
+| Component       | V1 Status      |
+| --------------- | -------------- |
+| ESP32-S3        | Current choice |
+| IMU             | Candidate      |
+| MicoAir MTF-01P | Selected       |
+| Barometer       | Optional       |
+| ESC             | Candidate      |
+| Motors          | Candidate      |
+| Propellers      | TBD            |
+| Battery         | TBD            |
+| Camera          | Candidate      |
+| Frame           | Custom         |
+| Wiring          | Required       |
+| Fasteners       | Required       |
 
-- Motors
-- Propellers
-- ESC
-- Battery
+---
 
-the mechanical design phase can begin.
+# 14. Current Budget
 
-The chassis will then be designed around:
+The original component candidates give approximately:
 
-- Component dimensions
-- Weight distribution
-- Center of Gravity (CoG)
-- Airflow
-- Cooling
-- Ease of assembly
-- Future modularity
+| Component  | Estimated Cost |
+| ---------- | -------------: |
+| ESP32-S3   |           ₹600 |
+| IMU        |           ₹700 |
+| MTF-01P    |            TBD |
+| ESC        |          ₹2000 |
+| Motors     |          ₹3200 |
+| Propellers |           ₹500 |
+| Battery    |          ₹1600 |
+| Camera     |           ₹800 |
+| Wiring     |           ₹500 |
+| Frame      |           ₹600 |
+| Fasteners  |           ₹300 |
+
+```text
+Current known total: ~₹10,800
+```
+
+MTF-01P cost is not included because it is still TBD.
+
+Therefore the **₹10,000 BOM target is not currently achieved**.
+
+---
+
+# 15. Cost Priority
+
+If the BOM exceeds ₹10,000, reduce cost in this order:
+
+1. Remove optional barometer.
+2. Reduce camera cost.
+3. Optimize frame cost.
+4. Compare budget ESCs.
+5. Compare IMU options.
+6. Optimize motor/propeller/battery combination.
+
+Do not reduce the core flight-control architecture merely to meet the budget.
+
+The core V1 sensor stack is:
+
+```text
+IMU
++
+MTF-01P
++
+ESP32-S3
+```
+
+---
+
+# 16. Selection Method
+
+Final component selection will be based on:
+
+* Cost
+* Weight
+* Power consumption
+* Reliability
+* Availability
+* Software support
+* Integration difficulty
+* Performance
+* Compatibility with other components
+
+No component is considered final solely because it is inexpensive.
+
+---
+
+# 17. Next Step
+
+Before designing the frame, finalize the propulsion system:
+
+```text
+Motor
+   ↓
+KV
+   ↓
+Propeller
+   ↓
+Battery
+   ↓
+ESC
+   ↓
+Thrust
+   ↓
+Power
+   ↓
+Flight time
+```
+
+Once propulsion is finalized:
+
+* Calculate total weight
+* Calculate thrust-to-weight ratio
+* Calculate power requirement
+* Calculate expected flight time
+* Select frame dimensions
+* Place components
+* Determine center of gravity
+* Begin CAD design
+

@@ -11,6 +11,6 @@
         "distro": "harmonic"
     },
     "python": {
-        "major_minor": "3.12"
+        "version": "3.12"
     }
 }
